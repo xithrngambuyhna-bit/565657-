@@ -1,0 +1,303 @@
+-- ==========================================
+-- SCRIPT: Dark Drive / Black Drive Simulator
+-- Fully Functional & Standalone Script
+-- ==========================================
+
+-- ลบ UI เก่าป้องกันการรันซ้ำ
+pcall(function()
+	local oldUI = game:GetService("CoreGui"):FindFirstChild("DarkDriveProGUI")
+	if oldUI then oldUI:Destroy() end
+end)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+-- สร้าง ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "DarkDriveProGUI"
+screenGui.ResetOnSpawn = false
+
+-- ตรวจสอบ Container ของ Executor
+if gethui then
+	screenGui.Parent = gethui()
+elseif game:GetService("CoreGui") then
+	screenGui.Parent = game:GetService("CoreGui")
+else
+	screenGui.Parent = player:WaitForChild("PlayerGui")
+end
+
+-- ==========================================
+-- 1. MAIN WINDOW (หน้าต่างหลัก)
+-- ==========================================
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 310, 0, 310)
+mainFrame.Position = UDim2.new(0.5, -155, 0.35, -155)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 26)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 14)
+mainCorner.Parent = mainFrame
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(240, 50, 100)
+mainStroke.Thickness = 2
+mainStroke.Parent = mainFrame
+
+-- หัวข้อ GUI
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Text = "♥ Mungkorn"
+titleLabel.Size = UDim2.new(1, -60, 0, 22)
+titleLabel.Position = UDim2.new(0, 15, 0, 12)
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.TextSize = 18
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Parent = mainFrame
+
+local subTitle = Instance.new("TextLabel")
+subTitle.Text = "Dark Drive Simulator Edition"
+subTitle.Size = UDim2.new(1, -60, 0, 16)
+subTitle.Position = UDim2.new(0, 15, 0, 34)
+subTitle.TextColor3 = Color3.fromRGB(240, 100, 150)
+subTitle.BackgroundTransparency = 1
+subTitle.Font = Enum.Font.SourceSans
+subTitle.TextSize = 13
+subTitle.TextXAlignment = Enum.TextXAlignment.Left
+subTitle.Parent = mainFrame
+
+-- ปุ่มย่อ (-)
+local minBtn = Instance.new("TextButton")
+minBtn.Text = "-"
+minBtn.Size = UDim2.new(0, 30, 0, 30)
+minBtn.Position = UDim2.new(1, -38, 0, 10)
+minBtn.BackgroundTransparency = 1
+minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+minBtn.Font = Enum.Font.SourceSansBold
+minBtn.TextSize = 28
+minBtn.Parent = mainFrame
+
+-- ปุ่มไอคอนย่อ (⭐ ลอยได้)
+local miniIcon = Instance.new("TextButton")
+miniIcon.Name = "MiniIcon"
+miniIcon.Text = "⭐"
+miniIcon.Size = UDim2.new(0, 55, 0, 55)
+miniIcon.Position = UDim2.new(0.85, 0, 0.2, 0)
+miniIcon.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+miniIcon.TextColor3 = Color3.fromRGB(255, 215, 0)
+miniIcon.Font = Enum.Font.SourceSansBold
+miniIcon.TextSize = 28
+miniIcon.Active = true
+miniIcon.Draggable = true
+miniIcon.Visible = false
+miniIcon.Parent = screenGui
+
+local miniCorner = Instance.new("UICorner")
+miniCorner.CornerRadius = UDim.new(1, 0)
+miniCorner.Parent = miniIcon
+
+local miniStroke = Instance.new("UIStroke")
+miniStroke.Color = Color3.fromRGB(240, 50, 100)
+miniStroke.Thickness = 2
+miniStroke.Parent = miniIcon
+
+-- สลับการทำงาน ย่อ / ขยาย
+minBtn.MouseButton1Click:Connect(function()
+	mainFrame.Visible = false
+	miniIcon.Visible = true
+end)
+
+miniIcon.MouseButton1Click:Connect(function()
+	mainFrame.Visible = true
+	miniIcon.Visible = false
+end)
+
+-- ==========================================
+-- 2. ฟังก์ชันสร้าง TOGGLE SWITCH
+-- ==========================================
+local function createToggle(text, yPos, defaultOn, callback)
+	local container = Instance.new("Frame")
+	container.Size = UDim2.new(0.9, 0, 0, 40)
+	container.Position = UDim2.new(0.05, 0, 0, yPos)
+	container.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+	container.Parent = mainFrame
+
+	local cCorner = Instance.new("UICorner")
+	cCorner.CornerRadius = UDim.new(0, 8)
+	cCorner.Parent = container
+
+	local lbl = Instance.new("TextLabel")
+	lbl.Text = text
+	lbl.Size = UDim2.new(0.65, 0, 1, 0)
+	lbl.Position = UDim2.new(0.04, 0, 0, 0)
+	lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+	lbl.BackgroundTransparency = 1
+	lbl.Font = Enum.Font.SourceSansBold
+	lbl.TextSize = 15
+	lbl.TextXAlignment = Enum.TextXAlignment.Left
+	lbl.Parent = container
+
+	local btn = Instance.new("TextButton")
+	btn.Text = defaultOn and "ON" or "OFF"
+	btn.Size = UDim2.new(0, 55, 0, 24)
+	btn.Position = UDim2.new(0.96, -55, 0.5, -12)
+	btn.BackgroundColor3 = defaultOn and Color3.fromRGB(240, 50, 100) or Color3.fromRGB(65, 65, 75)
+	btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	btn.Font = Enum.Font.SourceSansBold
+	btn.TextSize = 13
+	btn.Parent = container
+
+	local bCorner = Instance.new("UICorner")
+	bCorner.CornerRadius = UDim.new(0, 6)
+	bCorner.Parent = btn
+
+	local state = defaultOn
+	btn.MouseButton1Click:Connect(function()
+		state = not state
+		btn.Text = state and "ON" or "OFF"
+		btn.BackgroundColor3 = state and Color3.fromRGB(240, 50, 100) or Color3.fromRGB(65, 65, 75)
+		callback(state)
+	end)
+end
+
+-- ==========================================
+-- 3. ปุ่มแยกไนโตรวงกลม รูปไฟ 🔥
+-- ==========================================
+local floatFireNitro = Instance.new("TextButton")
+floatFireNitro.Name = "FloatFireNitro"
+floatFireNitro.Text = "🔥"
+floatFireNitro.Size = UDim2.new(0, 65, 0, 65)
+floatFireNitro.Position = UDim2.new(0.82, 0, 0.45, 0)
+floatFireNitro.BackgroundColor3 = Color3.fromRGB(240, 50, 100)
+floatFireNitro.TextColor3 = Color3.fromRGB(255, 255, 255)
+floatFireNitro.Font = Enum.Font.SourceSansBold
+floatFireNitro.TextSize = 34
+floatFireNitro.Active = true
+floatFireNitro.Draggable = true
+floatFireNitro.Visible = false
+floatFireNitro.Parent = screenGui
+
+local fireCorner = Instance.new("UICorner")
+fireCorner.CornerRadius = UDim.new(1, 0)
+fireCorner.Parent = floatFireNitro
+
+local fireStroke = Instance.new("UIStroke")
+fireStroke.Color = Color3.fromRGB(255, 255, 255)
+fireStroke.Thickness = 2
+fireStroke.Parent = floatFireNitro
+
+-- ==========================================
+-- 4. การตั้งค่าระบบ
+-- ==========================================
+local speedVal = 340
+local isNitroActive = true
+local isFloatPressing = false
+local isGodmode = true
+
+-- สวิตช์ 1: แยกไนโตรออกมา
+createToggle("📋  แยกไนโตรออกมา", 60, false, function(v)
+	floatFireNitro.Visible = v
+end)
+
+-- สวิตช์ 2: ไนโตรหลัก
+createToggle("⚡  ไนโตร", 110, true, function(v)
+	isNitroActive = v
+end)
+
+-- ช่องลด/เพิ่ม ความเร็ว (Input Box)
+local speedContainer = Instance.new("Frame")
+speedContainer.Size = UDim2.new(0.9, 0, 0, 40)
+speedContainer.Position = UDim2.new(0.05, 0, 0, 160)
+speedContainer.BackgroundColor3 = Color3.fromRGB(30, 30, 38)
+speedContainer.Parent = mainFrame
+
+local sCorner = Instance.new("UICorner")
+sCorner.CornerRadius = UDim.new(0, 8)
+sCorner.Parent = speedContainer
+
+local spLbl = Instance.new("TextLabel")
+spLbl.Text = "🏃  ความเร็ว:"
+spLbl.Size = UDim2.new(0.4, 0, 1, 0)
+spLbl.Position = UDim2.new(0.04, 0, 0, 0)
+spLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+spLbl.BackgroundTransparency = 1
+spLbl.Font = Enum.Font.SourceSansBold
+spLbl.TextSize = 15
+spLbl.TextXAlignment = Enum.TextXAlignment.Left
+spLbl.Parent = speedContainer
+
+local spBox = Instance.new("TextBox")
+spBox.Text = "340"
+spBox.Size = UDim2.new(0, 50, 0, 26)
+spBox.Position = UDim2.new(0.44, 0, 0.5, -13)
+spBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+spBox.BackgroundTransparency = 1
+spBox.Font = Enum.Font.SourceSansBold
+spBox.TextSize = 14
+spBox.Parent = speedContainer
+
+local spBtn = Instance.new("TextButton")
+spBtn.Text = "เปลี่ยน"
+spBtn.Size = UDim2.new(0, 60, 0, 26)
+spBtn.Position = UDim2.new(0.96, -60, 0.5, -13)
+spBtn.BackgroundColor3 = Color3.fromRGB(160, 60, 230)
+spBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+spBtn.Font = Enum.Font.SourceSansBold
+spBtn.TextSize = 13
+spBtn.Parent = speedContainer
+
+local spBtnCorner = Instance.new("UICorner")
+spBtnCorner.CornerRadius = UDim.new(0, 6)
+spBtnCorner.Parent = spBtn
+
+spBtn.MouseButton1Click:Connect(function()
+	local n = tonumber(spBox.Text)
+	if n then 
+		speedVal = n 
+	end
+end)
+
+-- สวิตช์ 3: กันตาย
+createToggle("🛡️  กันตาย", 210, true, function(v)
+	isGodmode = v
+end)
+
+-- ==========================================
+-- 5. ENGINE LOOP (ลูปการทำงานหลัก)
+-- ==========================================
+floatFireNitro.MouseButton1Down:Connect(function() isFloatPressing = true end)
+floatFireNitro.MouseButton1Up:Connect(function() isFloatPressing = false end)
+
+RunService.RenderStepped:Connect(function()
+	-- ระบบดันความเร็วรถ (Vehicle Physics)
+	if isNitroActive or isFloatPressing then
+		local char = player.Character
+		if char then
+			local hum = char:FindFirstChildOfClass("Humanoid")
+			if hum and hum.SeatPart and hum.SeatPart:IsA("VehicleSeat") then
+				local seat = hum.SeatPart
+				if seat.ThrottleFloat > 0 or seat.Throttle > 0 or isFloatPressing then
+					local moveVec = seat.CFrame.LookVector * (speedVal * 1.55)
+					seat.AssemblyLinearVelocity = Vector3.new(moveVec.X, seat.AssemblyLinearVelocity.Y, moveVec.Z)
+				end
+			end
+		end
+	end
+
+	-- ระบบกันตาย (GodMode)
+	if isGodmode then
+		local char = player.Character
+		if char then
+			local hum = char:FindFirstChildOfClass("Humanoid")
+			if hum and hum.Health < hum.MaxHealth then
+				hum.Health = hum.MaxHealth
+			end
+		end
+	end
+end)
